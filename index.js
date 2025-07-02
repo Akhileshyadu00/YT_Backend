@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import { UserRoutes } from './routes/userRoutes.js';
 
 // Load environment variables from .env
 dotenv.config();
@@ -10,6 +11,10 @@ const port = process.env.PORT || 4001;
 
 // Middleware to parse JSON bodies
 app.use(express.json());
+
+
+UserRoutes(app)
+
 
 // Root route
 app.get("/", (req, res) => {
