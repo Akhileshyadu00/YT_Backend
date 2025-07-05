@@ -67,6 +67,26 @@ export async function getVideoById(req, res) {
 }
 
 
+
+
+// GET ALL VIDEOS BY USER ID 
+export async function getVideosByUser(req, res) {
+  try {
+    const { userId } = req.params;
+
+    const videos = await Video.find({ user: userId })
+      .populate('user', 'userName channelName profilePic')
+      .sort({ createdAt: -1 }); // Newest first
+
+    res.status(200).json({ videos });
+  } catch (err) {
+    console.error('Get videos by user error:', err);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+
+
+
 // UPDATE VIDEO
 export async function updateVideo(req, res) {
   try {

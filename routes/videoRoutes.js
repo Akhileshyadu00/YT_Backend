@@ -3,6 +3,7 @@ import {
   videoUpload,
   getVideos,
   getVideoById,
+  getVideosByUser,
   updateVideo,
   deleteVideo,
 } from '../controllers/videoController.js';
@@ -14,6 +15,7 @@ const router = express.Router();
 router.post('/', authentication, videoUpload);       
 router.get('/', authentication, getVideos);          
 router.get('/:id', authentication, getVideoById);   
+router.get('/user/:userId', authentication, getVideosByUser);
 router.put('/:id', authentication, updateVideo);
 router.delete('/:id', authentication, deleteVideo);
 
