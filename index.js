@@ -3,7 +3,8 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import userRoutes from './routes/userRoutes.js';
-import videoRoutes from './routes/videoRoutes.js'
+import videoRoutes from './routes/videoRoutes.js';
+import commentRoutes from './routes/commentRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -18,6 +19,7 @@ app.use(cookieParser());
 // Routes
 app.use('/api/users', userRoutes);   
 app.use('/api/videos', videoRoutes);
+app.use('/api/comments', commentRoutes);
 
 // Health check route
 app.get('/', (req, res) => {
