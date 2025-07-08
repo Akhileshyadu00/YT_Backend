@@ -7,7 +7,7 @@ const commentSchema = new mongoose.Schema(
       ref: "User", // Match the User model name
       required: true,
     },
-    video: {
+    videoId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Video", // Match the Video model name
       required: true,

@@ -40,11 +40,11 @@ const videoSchema = new mongoose.Schema(
         message: "Invalid thumbnail URL format.",
       },
     },
-    videoType: {
+    category: {
       type: String,
       required: true,
       default: "All",
-      enum: ["All", "Music", "Tutorial", "Gaming", "News", "Other"], // Extendable
+      enum: ["All", "Music", "Tutorial", "Gaming", "News", "Other", "React"], // Extendable
     },
     like: {
       type: Number,

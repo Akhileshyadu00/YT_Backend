@@ -158,6 +158,7 @@ export async function login(req, res) {
         email: user.email,
         role: user.role,
         channelName: user.channelName,
+        profilePic: user.profilePic,
       },
     });
   } catch (err) {
