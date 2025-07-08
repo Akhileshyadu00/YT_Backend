@@ -1,27 +1,20 @@
-
-import express from 'express';
-
-
+import express from "express";
 import {
   videoUpload,
   getVideos,
   getVideoById,
-  getVideosByUser,
+  getChannelVideos, // <--- for /api/videos/:id/channel
   updateVideo,
-  deleteVideo
-} from '../controllers/videoController.js';
-import { authentication } from '../middleware/authentication.js';
+  deleteVideo,
+} from "../controllers/videoController.js";
 
 const router = express.Router();
 
-router.post('/', authentication, videoUpload);       
-router.get('/', getVideos);          
-router.get('/:id', getVideoById);    
-router.put('/:id', authentication, updateVideo);
-router.delete('/:id', authentication, deleteVideo);
-
-router.get('/:userId/videos', getVideosByUser);  
-
-
+router.post("/upload", videoUpload);
+router.get("/", getVideos);
+router.get("/:id", getVideoById);
+router.get("/:id/channel", getChannelVideos); // <--- this route!
+router.put("/:id", updateVideo);
+router.delete("/:id", deleteVideo);
 
 export default router;

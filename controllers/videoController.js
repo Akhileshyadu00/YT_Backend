@@ -1,22 +1,19 @@
 import Video from "../models/video.js";
 import mongoose from "mongoose";
 
+// UPLOAD VIDEO
 export async function videoUpload(req, res) {
   try {
     const { title, description, thumbnail, videoLink, category } = req.body;
+    const userId = req.user?.id;
 
-    // Basic validation
     if (!title || !description || !thumbnail || !videoLink || !category) {
       return res.status(400).json({ message: "All fields are required" });
     }
-
-    // Get user ID from the authenticated request
-    const userId = req.user?.id;
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized: No user found" });
     }
 
-    // Create video
     const newVideo = new Video({
       user: userId,
       title,
@@ -38,12 +35,12 @@ export async function videoUpload(req, res) {
   }
 }
 
+// GET ALL VIDEOS
 export async function getVideos(req, res) {
   try {
-    const videos = await Video.find().populate(
-      "user",
-      "userName channelName profilePic"
-    ); // populate user info
+    const videos = await Video.find()
+      .populate("user", "userName channelName profilePic")
+      .sort({ createdAt: -1 });
     res.status(200).json({ videos });
   } catch (err) {
     console.error("Get videos error:", err);
@@ -56,10 +53,12 @@ export async function getVideoById(req, res) {
   try {
     const videoId = req.params.id;
 
-    const video = await Video.findById(videoId).populate(
-      "user",
-      "userName channelName profilePic"
-    );
+    if (!mongoose.Types.ObjectId.isValid(videoId)) {
+      return res.status(400).json({ message: "Invalid video ID format" });
+    }
+
+    const video = await Video.findById(videoId)
+      .populate("user", "userName channelName profilePic");
 
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
@@ -72,22 +71,22 @@ export async function getVideoById(req, res) {
   }
 }
 
-// GET ALL VIDEOS BY USER ID
-export async function getVideosByUser(req, res) {
-  const { userId } = req.params;
+// GET ALL VIDEOS BY USER ID (for /api/videos/:userId/channel)
+export async function getChannelVideos(req, res) {
+  const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(userId)) {
-    return res.status(400).json({ error: "Invalid user ID format" });
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid user ID format" });
   }
 
   try {
-    const videos = await Video.find({ user: userId })
+    const videos = await Video.find({ user: id })
       .populate("user", "userName channelName profilePic createdAt about")
-      .sort({ createdAt: -1 }); // Newest first
+      .sort({ createdAt: -1 });
 
     res.status(200).json({ videos });
   } catch (err) {
-    console.error("Get videos by user error:", err);
+    console.error("Get channel videos error:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
@@ -99,19 +98,19 @@ export async function updateVideo(req, res) {
     const userId = req.user.id;
     const updates = req.body;
 
-    // Find video and check ownership
+    if (!mongoose.Types.ObjectId.isValid(videoId)) {
+      return res.status(400).json({ message: "Invalid video ID format" });
+    }
+
     const video = await Video.findById(videoId);
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
 
     if (video.user.toString() !== userId) {
-      return res
-        .status(403)
-        .json({ message: "You are not authorized to update this video" });
+      return res.status(403).json({ message: "You are not authorized to update this video" });
     }
 
-    // Update video fields
     const updatedVideo = await Video.findByIdAndUpdate(videoId, updates, {
       new: true,
       runValidators: true,
@@ -133,15 +132,17 @@ export async function deleteVideo(req, res) {
     const videoId = req.params.id;
     const userId = req.user.id;
 
+    if (!mongoose.Types.ObjectId.isValid(videoId)) {
+      return res.status(400).json({ message: "Invalid video ID format" });
+    }
+
     const video = await Video.findById(videoId);
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
 
     if (video.user.toString() !== userId) {
-      return res
-        .status(403)
-        .json({ message: "You are not authorized to delete this video" });
+      return res.status(403).json({ message: "You are not authorized to delete this video" });
     }
 
     await video.deleteOne();
@@ -152,4 +153,3 @@ export async function deleteVideo(req, res) {
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
-
