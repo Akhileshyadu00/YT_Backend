@@ -44,7 +44,18 @@ const videoSchema = new mongoose.Schema(
       type: String,
       required: true,
       default: "All",
-      enum: ["All", "Music", "Tutorial", "Gaming", "News", "Other", "React"], // Extendable
+      enum: [
+        "All",
+        "Trending",
+        "Music",
+        "Gaming",
+        "News",
+        "Live",
+        "UPSC",
+        "English",
+        "React",
+        "Javascript",
+      ], // Extendable
     },
     like: {
       type: Number,

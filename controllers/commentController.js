@@ -102,3 +102,65 @@ export async function getCommentsByVideoId(req, res) {
 }
 
 
+// PUT /api/comments/:commentId
+export async function updateComment(req, res) {
+  try {
+    const { commentId } = req.params;
+    const { message } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ message: "Comment text is required" });
+    }
+
+    const comment = await Comment.findById(commentId);
+
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    // Only the owner can update
+    if (comment.user.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    comment.message = message;
+    await comment.save();
+
+    res.status(200).json({
+      message: "Comment updated successfully",
+      comment,
+    });
+  } catch (error) {
+    console.error("Update comment error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+
+// DELETE /api/comments/:commentId
+export async function deleteComment(req, res) {
+  try {
+    const { commentId } = req.params;
+
+    const comment = await Comment.findById(commentId);
+
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    // Only the owner can delete
+    if (comment.user.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    await comment.deleteOne();
+
+    res.status(200).json({ message: "Comment deleted successfully" });
+  } catch (error) {
+    console.error("Delete comment error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+
+
