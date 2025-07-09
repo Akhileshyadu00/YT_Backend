@@ -38,15 +38,29 @@ export async function videoUpload(req, res) {
 // GET ALL VIDEOS
 export async function getVideos(req, res) {
   try {
+    // Fetch all videos with user details
     const videos = await Video.find()
       .populate("user", "userName channelName profilePic")
       .sort({ createdAt: -1 });
-    res.status(200).json({ videos });
+
+    // Get search query from URL (e.g., /api/videos?search=react)
+    const search = req.query.search?.toLowerCase() || '';
+
+    // If search query exists, filter videos by title
+    const filteredVideos = search
+      ? videos.filter(video =>
+          video.title.toLowerCase().includes(search)
+        )
+      : videos;
+
+    // Send filtered (or all) videos as response
+    res.status(200).json({ videos: filteredVideos });
   } catch (err) {
     console.error("Get videos error:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
+
 
 // GET VIDEO BY ID
 export async function getVideoById(req, res) {
