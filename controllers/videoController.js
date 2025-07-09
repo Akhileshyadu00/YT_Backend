@@ -153,3 +153,70 @@ export async function deleteVideo(req, res) {
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
+
+
+// LIKE VIDEO (with user tracking)
+export async function likeVideo(req, res) {
+  try {
+    const video = await Video.findById(req.params.id);
+    const userId = req.user?.id;
+
+    if (!video) return res.status(404).json({ message: 'Video not found' });
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+    // Prevent duplicate like
+    if (video.likedBy.includes(userId)) {
+      return res.status(400).json({ message: "You already liked this video" });
+    }
+
+    // Add like
+    video.like += 1;
+    video.likedBy.push(userId);
+
+    // If previously disliked, remove dislike
+    const dislikeIndex = video.dislikedBy.indexOf(userId);
+    if (dislikeIndex !== -1) {
+      video.dislike = Math.max(video.dislike - 1, 0);
+      video.dislikedBy.splice(dislikeIndex, 1);
+    }
+
+    await video.save();
+    res.status(200).json({ like: video.like, dislike: video.dislike });
+  } catch (err) {
+    console.error("Like video error:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+// DISLIKE VIDEO (with user tracking)
+export async function dislikeVideo(req, res) {
+  try {
+    const video = await Video.findById(req.params.id);
+    const userId = req.user?.id;
+
+    if (!video) return res.status(404).json({ message: 'Video not found' });
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+    // Prevent duplicate dislike
+    if (video.dislikedBy.includes(userId)) {
+      return res.status(400).json({ message: "You already disliked this video" });
+    }
+
+    // Add dislike
+    video.dislike += 1;
+    video.dislikedBy.push(userId);
+
+    // If previously liked, remove like
+    const likeIndex = video.likedBy.indexOf(userId);
+    if (likeIndex !== -1) {
+      video.like = Math.max(video.like - 1, 0);
+      video.likedBy.splice(likeIndex, 1);
+    }
+
+    await video.save();
+    res.status(200).json({ like: video.like, dislike: video.dislike });
+  } catch (err) {
+    console.error("Dislike video error:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
