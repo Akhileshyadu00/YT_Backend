@@ -3,26 +3,42 @@ import {
   videoUpload,
   getVideos,
   getVideoById,
-  getChannelVideos, // <--- for /api/videos/:id/channel
+  getChannelVideosByChannelId, // /api/videos/channel/:channelId
+  getChannelVideosByUserId,    // /api/videos/user/:userId
   updateVideo,
   deleteVideo,
   likeVideo,
   dislikeVideo
 } from "../controllers/videoController.js";
-
 import { authentication } from "../middleware/authentication.js";
 
 const router = express.Router();
 
-router.post("/upload",authentication, videoUpload);
-router.get("/", getVideos);
-router.get("/:id", getVideoById);
-//router.get("/:id/channel",authentication, getChannelVideos); // <--- user Routes
-router.put("/:id", authentication,updateVideo);
-router.delete("/:id",authentication ,deleteVideo);
+// Upload a new video (must be authenticated)
+router.post("/", authentication, videoUpload);
 
-router.post('/:id/like',authentication, likeVideo);
-router.post('/:id/dislike',authentication, dislikeVideo);
-router.get("/:id/channel",authentication, getChannelVideos); 
+// Get all videos (with optional search)
+router.get("/", getVideos);
+
+// Get a single video by its ID
+router.get("/:id", getVideoById);
+
+// Get all videos by channel ID
+router.get("/channel/:channelId", getChannelVideosByChannelId);
+
+// Get all videos by user ID
+router.get("/user/:userId", getChannelVideosByUserId);
+
+// Update a video (must be owner)
+router.put("/:id", authentication, updateVideo);
+
+// Delete a video (must be owner)
+router.delete("/:id", authentication, deleteVideo);
+
+// Like a video
+router.post("/:id/like", authentication, likeVideo);
+
+// Dislike a video
+router.post("/:id/dislike", authentication, dislikeVideo);
 
 export default router;

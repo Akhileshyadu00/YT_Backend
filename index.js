@@ -8,6 +8,7 @@ import cors from 'cors'
 import userRoutes from './routes/userRoutes.js';
 import videoRoutes from './routes/videoRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
+import channelRoutes from './routes/channelRoutes.js'
 
 
 
@@ -31,6 +32,7 @@ app.use(cors({
 app.use('/api/users', userRoutes);   
 app.use('/api/videos', videoRoutes);
 app.use('/api/comments', commentRoutes);
+app.use('/api/channels', channelRoutes)
 
 
 // Health check route

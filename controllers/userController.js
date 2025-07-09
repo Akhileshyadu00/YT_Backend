@@ -4,10 +4,10 @@ import jwt from 'jsonwebtoken';
 // REGISTER
 export async function register(req, res) {
   try {
-    const { channelName, userName, email, password, about, profilePic } = req.body;
+    const { userName, email, password, about, profilePic } = req.body;
 
     // Basic validation
-    if (!channelName || !userName || !email || !password || !about || !profilePic) {
+    if ( !userName || !email || !password || !about || !profilePic) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
@@ -19,7 +19,6 @@ export async function register(req, res) {
 
     // Create new user
     const newUser = new User({
-      channelName,
       userName,
       email,
       password,
@@ -157,7 +156,6 @@ export async function login(req, res) {
         userName: user.userName,
         email: user.email,
         role: user.role,
-        channelName: user.channelName,
         profilePic: user.profilePic,
       },
     });

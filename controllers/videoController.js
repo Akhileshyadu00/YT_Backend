@@ -1,10 +1,56 @@
+import Channel from "../models/channel.js";
 import Video from "../models/video.js";
 import mongoose from "mongoose";
 
-// UPLOAD VIDEO
+// UPLOAD VIDEO (links video to channel)
+// export async function videoUpload(req, res) {
+//   try {
+//     const { title, description, thumbnail, videoLink, category } = req.body;
+//     const userId = req.user?.id;
+
+//     if (!title || !description || !thumbnail || !videoLink || !category) {
+//       return res.status(400).json({ message: "All fields are required" });
+//     }
+//     if (!userId) {
+//       return res.status(401).json({ message: "Unauthorized: No user found" });
+//     }
+
+//     // Find the channel for this user
+//     const channel = await Channel.findOne({ owner: userId });
+//     if (!channel) {
+//       return res.status(404).json({ message: "Channel not found for user." });
+//     }
+
+//     // Create the new video and link to channel
+//     const newVideo = new Video({
+//       user: userId,
+//       channel: channel._id,
+//       title,
+//       description,
+//       thumbnail,
+//       videoLink,
+//       category,
+//     });
+
+//     await newVideo.save();
+
+//     // Add video to channel's videos array
+//     channel.videos.push(newVideo._id);
+//     await channel.save();
+
+//     return res.status(201).json({
+//       message: "Video uploaded successfully",
+//       video: newVideo,
+//     });
+//   } catch (error) {
+//     console.error("Video upload error:", error);
+//     res.status(500).json({ message: "Internal Server Error" });
+//   }
+// }
+
 export async function videoUpload(req, res) {
   try {
-    const { title, description, thumbnail, videoLink, category } = req.body;
+    const { title, description, thumbnail, videoLink, category, channel: channelId } = req.body;
     const userId = req.user?.id;
 
     if (!title || !description || !thumbnail || !videoLink || !category) {
@@ -14,8 +60,28 @@ export async function videoUpload(req, res) {
       return res.status(401).json({ message: "Unauthorized: No user found" });
     }
 
+    // Use channel from body if provided, else find by user
+    let channel;
+    if (channelId) {
+      channel = await Channel.findById(channelId);
+      if (!channel) {
+        return res.status(404).json({ message: "Channel not found." });
+      }
+      // Optional: Check if user owns the channel
+      if (channel.owner.toString() !== userId) {
+        return res.status(403).json({ message: "You do not own this channel." });
+      }
+    } else {
+      channel = await Channel.findOne({ owner: userId });
+      if (!channel) {
+        return res.status(404).json({ message: "Channel not found for user." });
+      }
+    }
+
+    // Create the new video and link to channel
     const newVideo = new Video({
       user: userId,
+      channel: channel._id,
       title,
       description,
       thumbnail,
@@ -24,6 +90,10 @@ export async function videoUpload(req, res) {
     });
 
     await newVideo.save();
+
+    // Add video to channel's videos array
+    channel.videos.push(newVideo._id);
+    await channel.save();
 
     return res.status(201).json({
       message: "Video uploaded successfully",
@@ -35,28 +105,67 @@ export async function videoUpload(req, res) {
   }
 }
 
-// GET ALL VIDEOS
+
+// GET ALL VIDEOS (with optional search)
 export async function getVideos(req, res) {
   try {
-    // Fetch all videos with user details
-    const videos = await Video.find()
+    const search = req.query.search?.toLowerCase() || '';
+    let videos = await Video.find()
       .populate("user", "userName channelName profilePic")
       .sort({ createdAt: -1 });
 
-    // Get search query from URL (e.g., /api/videos?search=react)
-    const search = req.query.search?.toLowerCase() || '';
+    if (search) {
+      videos = videos.filter(video =>
+        video.title.toLowerCase().includes(search)
+      );
+    }
 
-    // If search query exists, filter videos by title
-    const filteredVideos = search
-      ? videos.filter(video =>
-          video.title.toLowerCase().includes(search)
-        )
-      : videos;
-
-    // Send filtered (or all) videos as response
-    res.status(200).json({ videos: filteredVideos });
+    res.status(200).json({ videos });
   } catch (err) {
     console.error("Get videos error:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+// GET ALL VIDEOS BY CHANNEL ID
+export async function getChannelVideosByChannelId(req, res) {
+  const { id } = req.params; // channel id
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid channel ID format" });
+  }
+
+  try {
+    const channel = await Channel.findById(id).populate({
+      path: "videos",
+      populate: { path: "user", select: "userName channelName profilePic" }
+    });
+    if (!channel) {
+      return res.status(404).json({ message: "Channel not found" });
+    }
+    res.status(200).json({ videos: channel.videos });
+  } catch (err) {
+    console.error("Get channel videos error:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+// GET ALL VIDEOS BY USER ID
+export async function getChannelVideosByUserId(req, res) {
+  const { userId } = req.params; // userId, not id!
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: "Invalid user ID format" });
+  }
+
+  try {
+    const videos = await Video.find({ user: userId })
+      .populate("user", "userName channelName profilePic createdAt about")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ videos });
+  } catch (err) {
+    console.error("Get user videos error:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
@@ -81,26 +190,6 @@ export async function getVideoById(req, res) {
     res.status(200).json({ video });
   } catch (err) {
     console.error("Get video by ID error:", err);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-}
-
-// GET ALL VIDEOS BY USER ID (for /api/videos/:userId/channel)
-export async function getChannelVideos(req, res) {
-  const { id } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ message: "Invalid user ID format" });
-  }
-
-  try {
-    const videos = await Video.find({ user: id })
-      .populate("user", "userName channelName profilePic createdAt about")
-      .sort({ createdAt: -1 });
-
-    res.status(200).json({ videos });
-  } catch (err) {
-    console.error("Get channel videos error:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
@@ -159,6 +248,13 @@ export async function deleteVideo(req, res) {
       return res.status(403).json({ message: "You are not authorized to delete this video" });
     }
 
+    // Remove video from channel.videos array
+    if (video.channel) {
+      await Channel.findByIdAndUpdate(video.channel, {
+        $pull: { videos: video._id }
+      });
+    }
+
     await video.deleteOne();
 
     res.status(200).json({ message: "Video deleted successfully" });
@@ -167,7 +263,6 @@ export async function deleteVideo(req, res) {
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
-
 
 // LIKE VIDEO (with user tracking)
 export async function likeVideo(req, res) {

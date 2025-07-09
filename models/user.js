@@ -5,11 +5,6 @@ import validator from "validator";
 // Define user schema
 const userSchema = new mongoose.Schema(
   {
-    channelName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
     userName: {
       type: String,
       required: true,
