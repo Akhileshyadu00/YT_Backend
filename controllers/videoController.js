@@ -181,7 +181,8 @@ export async function getVideoById(req, res) {
     }
 
     const video = await Video.findById(videoId)
-      .populate("user", "userName channelName profilePic");
+      .populate("user", "userName  profilePic")
+      .populate("channel", "channelName subscribers");
 
     if (!video) {
       return res.status(404).json({ message: "Video not found" });

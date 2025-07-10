@@ -188,7 +188,9 @@ export async function getUserProfile(req, res) {
   try {
     const { id } = req.params;
     // Exclude password and __v
-    const user = await User.findById(id).select("-password -__v");
+    const user = await User.findById(id).select("-password -__v")
+
+
     if (!user) {
       return res.status(404).json({ message: "User not found." });
     }
