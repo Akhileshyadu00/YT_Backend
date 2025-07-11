@@ -20,7 +20,7 @@ const port = process.env.PORT || 4001;
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: 'you-tube-1-iota.vercel.app',
   credentials: true
 } 
 ))
