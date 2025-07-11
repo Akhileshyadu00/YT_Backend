@@ -1,7 +1,4 @@
-import User from '../models/User.js';
-
- // Adjust the path as needed
-
+import User from '../models/user.js'
 import jwt from 'jsonwebtoken';
 
 // REGISTER

@@ -1,6 +1,6 @@
 import Channel from '../models/channel.js';
 import mongoose from 'mongoose';
-import User from '../models/User.js';
+import User from '../models/user.js';
 
 // Create a new channel
 // export const createChannel = async (req, res) => {
