@@ -1,4 +1,7 @@
 import User from '../models/User.js';
+
+ // Adjust the path as needed
+
 import jwt from 'jsonwebtoken';
 
 // REGISTER
@@ -157,6 +160,8 @@ export async function login(req, res) {
         email: user.email,
         role: user.role,
         profilePic: user.profilePic,
+        channelId: user.channel,
+
       },
     });
   } catch (err) {
@@ -184,19 +189,88 @@ export async function logout(req, res) {
 }
 
 
-export async function getUserProfile(req, res) {
+// export async function getUserProfile(req, res) {
+//   try {
+//     const { id } = req.params;
+//     // Exclude password and __v
+//     const user = await User.findById(id).select("-password -__v")
+
+
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found." });
+//     }
+//     res.status(200).json({ user });
+//   } catch (err) {
+//     console.error("Get user profile error:", err);
+//     res.status(500).json({ message: "Internal Server Error" });
+//   }
+// }
+
+ export async function getUserProfile(req, res) {
   try {
     const { id } = req.params;
-    // Exclude password and __v
-    const user = await User.findById(id).select("-password -__v")
-
+    // Exclude password and __v, and populate channel
+    const user = await User.findById(id)
+      .select("-password -__v")
+      .populate("channel");
 
     if (!user) {
       return res.status(404).json({ message: "User not found." });
     }
-    res.status(200).json({ user });
+
+    // channelId is either user.channel?._id or null
+    const channelId = user.channel ? user.channel._id : null;
+
+    res.status(200).json({
+      user,
+      channelId,
+      // Optionally, include the channel object if you want
+      // channel: user.channel || null,
+    });
   } catch (err) {
     console.error("Get user profile error:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
+
+// export async function getUserProfile(req, res) {
+//   try {
+//     const { id } = req.params;
+//     // Exclude password and __v, and populate channel
+//     const user = await User.findById(id)
+//       .select("-password -__v")
+//       .populate("Channel");
+
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found." });
+//     }
+
+//     // Prepare a plain JS object from the Mongoose document
+//     const userObj = user.toObject();
+
+//     // Safely extract channelId and channelName
+//     let channelId = null;
+//     let channelName = null;
+//     if (user.channel && typeof user.channel === "object") {
+//       channelId = user.channel._id ? user.channel._id.toString() : null;
+//       channelName = user.channel.channelName || user.channel.name || null;
+//     }
+
+//     userObj.channelId = channelId;
+//     userObj.channelName = channelName;
+
+//     // Optionally remove the channel object if you don't want to send it
+//     // delete userObj.channel;
+
+//     res.status(200).json({
+//       user: userObj,
+//     });
+//   } catch (err) {
+//     console.error("Get user profile error:", err);
+//     res.status(500).json({ message: "Internal Server Error" });
+//   }
+// }
+
+
+
+

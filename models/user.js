@@ -12,6 +12,11 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    channel: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Channel",
+      required: false, // Only required if every user must have a channel
+    },
     email: {
       type: String,
       required: [true, "Email is required"],

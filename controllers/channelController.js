@@ -1,10 +1,32 @@
 import Channel from '../models/channel.js';
 import mongoose from 'mongoose';
+import User from '../models/User.js';
 
 // Create a new channel
+// export const createChannel = async (req, res) => {
+//   try {
+//     const { channelName, description, channelBanner } = req.body;
+//     const channel = new Channel({
+//       channelName,
+//       description,
+//       channelBanner,
+//       owner: req.user.id
+//     });
+//     await channel.save();
+//     res.status(201).json(channel);
+//   } catch (err) {
+//     res.status(400).json({ message: err.message });
+//   }
+// };
+
+
+
+
 export const createChannel = async (req, res) => {
   try {
     const { channelName, description, channelBanner } = req.body;
+
+    // 1. Create new channel
     const channel = new Channel({
       channelName,
       description,
@@ -12,14 +34,23 @@ export const createChannel = async (req, res) => {
       owner: req.user.id
     });
     await channel.save();
+
+    // 2. Update user to reference this channel
+    await User.findByIdAndUpdate(
+      req.user.id,
+      { channel: channel._id },
+      { new: true }
+    );
+
+    // 3. Respond with the new channel
     res.status(201).json(channel);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 };
 
-// Get a channel by ID
-// export const getChannel = async (req, res) => {
+//Get a channel by ID
+//export const getChannel = async (req, res) => {
 //   try {
 //     const channel = await Channel.findById(req.params.id)
 //       .populate('owner', 'username avatar')
@@ -35,7 +66,7 @@ export const createChannel = async (req, res) => {
 
 export const getChannel = async (req, res) => {
   try {
-    // console.log("Requested channel id:", req.params.id);
+    console.log("Requested channel id:", req.params.id);
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(400).json({ message: 'Invalid channel id' });
     }

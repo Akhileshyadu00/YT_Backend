@@ -33,4 +33,5 @@ const channelSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("Channel", channelSchema);
+//export default mongoose.model("Channel", channelSchema);
+export default mongoose.models.Channel || mongoose.model("Channel", channelSchema);
