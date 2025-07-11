@@ -4,17 +4,14 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import cors from 'cors'
 
+// Load environment variables
+dotenv.config();
 
 import userRoutes from './routes/userRoutes.js';
 import videoRoutes from './routes/videoRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
 import channelRoutes from './routes/channelRoutes.js'
 
-
-
-
-// Load environment variables
-dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 4001;
